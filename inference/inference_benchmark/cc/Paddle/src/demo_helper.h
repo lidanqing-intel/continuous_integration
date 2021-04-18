@@ -90,7 +90,9 @@ void PrepareConfig(paddle_infer::Config *config) {
     config->SetCpuMathLibraryNumThreads(FLAGS_cpu_math_library_num_threads);
     if (FLAGS_use_mkldnn_) {
       config->EnableMKLDNN();
-      LOG(INFO) << "mkldnn enabled";
+      config->EnableProfile();
+      //config->enable_profile();
+      LOG(INFO) << "mkldnn enabled! WARNING! EnableProfile ! ";
     }
   }
   config->EnableMemoryOptim();
