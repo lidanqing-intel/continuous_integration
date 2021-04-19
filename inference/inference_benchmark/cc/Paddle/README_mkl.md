@@ -4,7 +4,7 @@
 
 ### Compile from source codes
 ```shell
-# Since the performance drop happens after merging oneDNN upgading PR, We have to build from source
+# Since the performance drop happens after merging "Upgade oneDNN to oneDNN v2.2" commit, We have to build from source
 
 # 1.1 Compile PaddlePaddle v2.0.1 (which use oneDNN v1.6)
 git clone https://github.com/PaddlePaddle/Paddle.git
