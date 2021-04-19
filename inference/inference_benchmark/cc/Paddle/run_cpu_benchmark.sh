@@ -24,11 +24,11 @@ predict_cpu(){
     model_type="static"
     log_root="./logs/${model_name}_cpu"
 
-    for batch_size in "1" "2" "4"
+    for batch_size in "1" # "2" "4"
     do
-        for use_mkldnn in "true" "false"
+        for use_mkldnn in "true" # "false"
         do
-            for cpu_math_library_num_threads in "1" "2" "4"
+            for cpu_math_library_num_threads in "1" # "2" "4"
             do
                 echo " "
                 printf "start ${RED} ${model_name}, use_mkldnn: ${use_mkldnn}, \
@@ -63,37 +63,37 @@ main(){
     predict_cpu clas_benchmark ${models} ${model_root}/${models}/model \
                                          ${model_root}/${models}/params
 
-    # resnet101-paddle
-    models="resnet101-paddle"
-    predict_cpu clas_benchmark ${models} ${model_root}/${models} ""
-
-    # mobilenet_ssd-paddle
-    models="mobilenet_ssd-paddle"
-    predict_cpu clas_benchmark ${models} ${model_root}/${models}/model \
-                                         "${model_root}/${models}/params" \
-                                         "3,300,300"
-
-    # faster_rcnn_r50_1x-paddle
-    models="faster_rcnn_r50_1x-paddle"
-    predict_cpu rcnn_benchmark ${models} ${model_root}/${models}/__model__ \
-                                         "${model_root}/${models}/__params__" \
-                                         "3,640,640" "100"
-
-    # deeplabv3p_xception_769_fp32-paddle
-    models="deeplabv3p_xception_769_fp32-paddle"
-    predict_cpu clas_benchmark ${models} ${model_root}/${models}/model \
-                               "${model_root}/${models}/params" \
-                               "3,769,769" "100"
-
-    # unet-paddle
-    models="unet-paddle"
-    predict_cpu clas_benchmark ${models} ${models} ${model_root}/${models}/model \
-                                         ${model_root}/${models}/params \
-                                         "3,512,512"
-
-    # bert_emb_v1-paddle
-    models="bert_emb_v1-paddle"
-    predict_cpu bert_benchmark ${models} ${model_root}/${models} ""
+#    # resnet101-paddle
+#    models="resnet101-paddle"
+#    predict_cpu clas_benchmark ${models} ${model_root}/${models} ""
+#
+#    # mobilenet_ssd-paddle
+#    models="mobilenet_ssd-paddle"
+#    predict_cpu clas_benchmark ${models} ${model_root}/${models}/model \
+#                                         "${model_root}/${models}/params" \
+#                                         "3,300,300"
+#
+#    # faster_rcnn_r50_1x-paddle
+#    models="faster_rcnn_r50_1x-paddle"
+#    predict_cpu rcnn_benchmark ${models} ${model_root}/${models}/__model__ \
+#                                         "${model_root}/${models}/__params__" \
+#                                         "3,640,640" "100"
+#
+#    # deeplabv3p_xception_769_fp32-paddle
+#    models="deeplabv3p_xception_769_fp32-paddle"
+#    predict_cpu clas_benchmark ${models} ${model_root}/${models}/model \
+#                               "${model_root}/${models}/params" \
+#                               "3,769,769" "100"
+#
+#    # unet-paddle
+#    models="unet-paddle"
+#    predict_cpu clas_benchmark ${models} ${models} ${model_root}/${models}/model \
+#                                         ${model_root}/${models}/params \
+#                                         "3,512,512"
+#
+#    # bert_emb_v1-paddle
+#    models="bert_emb_v1-paddle"
+#    predict_cpu bert_benchmark ${models} ${model_root}/${models} ""
 
     printf "${YELLOW} ==== finish benchmark ==== ${NC} \n"
 }

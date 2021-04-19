@@ -41,7 +41,7 @@ TENSORRT_ROOT="/usr/local/TensorRT6-cuda10.0-cudnn7"
 if [ $# -ge 7 ]; then
     TENSORRT_ROOT=$7
 fi
-LIB_DIR=/home/li/repo/Paddle/build_v2.0.2/paddle_inference_install_dir
+LIB_DIR=/home/li/repo/Paddle/build_v2.0.1/paddle_inference_install_dir
 cmake ../src -DPADDLE_LIB=${LIB_DIR} \
              -DWITH_MKL=${WITH_MKL} \
              -DDEMO_NAME=${DEMO_NAME} \

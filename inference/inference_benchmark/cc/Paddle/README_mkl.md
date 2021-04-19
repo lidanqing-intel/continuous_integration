@@ -6,13 +6,13 @@
 shell scripts only support linux platfrom right now.
 windows bat scripts will be added later
 ```shell
-DEMO_NAME="all"   # name of test demo, it can be clas_benchmark, rcnn_benchmark
+DEMO_NAME="clas_benchmark"   # name of test demo, it can be clas_benchmark, rcnn_benchmark
 WITH_MKL=ON       # whether to use MKL
 WITH_GPU=OFF      # whether to use GPU
 USE_TENSORRT=OFF  # whether to use TENSORRT
 LIB_DIR="/workspace/paddle_inference_install_dir" # path of cpp inference lib
 
-bash compile.sh ${DEMO_NAME} ${WITH_MKL} ${WITH_GPU} ${USE_TENSORRT} ${LIB_DIR}
+bash compile.sh clas_benchmark ON OFF OFF ${LIB_DIR}
 ```
 
 ### run batch test scripts

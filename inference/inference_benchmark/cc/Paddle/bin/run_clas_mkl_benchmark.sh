@@ -80,7 +80,8 @@ main(){
     printf "${YELLOW} ==== start benchmark ==== ${NC} \n"
     model_root=$1
 
-    class_model="DPN68" 
+    class_model="DPN68\
+                 MobileNetV2" 
     
     for tests in ${class_model}
     do
