@@ -2,32 +2,6 @@
 
 ## quick start
 
-### compile inference demo
-shell scripts only support linux platfrom right now.
-windows bat scripts will be added later
-```shell
-DEMO_NAME="clas_benchmark"   # name of test demo, it can be clas_benchmark, rcnn_benchmark
-WITH_MKL=ON       # whether to use MKL
-WITH_GPU=OFF      # whether to use GPU
-USE_TENSORRT=OFF  # whether to use TENSORRT
-LIB_DIR="/workspace/paddle_inference_install_dir" # path of cpp inference lib
-
-bash compile.sh clas_benchmark ON OFF OFF ${LIB_DIR}
-```
-
-### run batch test scripts
-`bin` directory has starting scripts, resources monitor scripts and log parser.
-```shell
-# Python scripts
-py_mem.py  # monitor inference bin（GPU+CPU），only support linux x86 currently
-py_parse_log.py # parse inference logs and covert to excel
-
-# Shell scripts
-run_models_benchmark.sh # main scripts, execute will download models if it not exist
-run_clas_mkl_benchmark.sh
-run_det_mkl_benchmark.sh
-```
-
 ### whole process
 ```shell
 # 1. download inference-lib or compile from source codes
@@ -49,6 +23,4 @@ python3.7 -m pip install openpyxl; # process data to excel
 # 5. start benchmark tests
 bash bin/run_models_benchmark.sh "static" "cpu"
 
-# 6. convert data to excel
-python3.7 bin/py_parse_log.py --log_path=./log --output_name=benchmark_mkl_excel.xlsx
-```
+You can find three models performance in log folder
