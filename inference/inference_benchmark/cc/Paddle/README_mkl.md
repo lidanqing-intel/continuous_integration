@@ -3,11 +3,11 @@
 ## quick start
 
 ### whole process
-```shell
-# 1. download inference-lib or compile from source codes
-Since the performance drop happens after merging oneDNN upgading PR, here we have to build from source
 
-```
+```shell
+# 1. Compile from source codes
+# Since the performance drop happens after merging oneDNN upgading PR, We have to build from source
+
 git clone https://github.com/PaddlePaddle/Paddle.git
 git checkout tags/v2.0.1 -b v2.0.1
 mkdir build_v2.0.1 && cd build_v2.0.1
@@ -26,10 +26,9 @@ cmake -DCMAKE_BUILD_TYPE=Release \
 make -j 12
 make -j 12 inference_lib_dist
 export LIB_DIR=/Paddle/build_v2.0.1/paddle_inference_install_dir
-```
 
-To compare v2.0.1 with oneDNN upgraded to oneDNNv2.2, 
-```
+
+# To compare v2.0.1 with oneDNN upgraded to oneDNNv2.2, 
 git cherry-pick 35ed56b54725a5ed9c71cebd7675f17b5b19d27e
 git check -b v2.0.1_oneDNN2.2
 mkdir build_oneDNN2.2 && cd build_oneDNN2
