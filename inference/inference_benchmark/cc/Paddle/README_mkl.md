@@ -2,10 +2,8 @@
 
 ## quick start
 
-### whole process
-
+### Compile from source codes
 ```shell
-# 1. Compile from source codes
 # Since the performance drop happens after merging oneDNN upgading PR, We have to build from source
 
 # 1.1 Compile PaddlePaddle v2.0.1 (which use oneDNN v1.6)
@@ -50,21 +48,26 @@ make -j 12 inference_lib_dist
 export LIB_DIR=/Paddle/v2.0.1_oneDNN2.2/paddle_inference_install_dir
 ```
 
-# 2. download test codes
+### 2. download test codes
+```
 git clone https://github.com/PaddlePaddle/continuous_integration.git
-
-# 3. compile test codes
+```
+### 3. compile test codes
+```
 cd continuous_integration/inference/inference_benchmark/cc/Paddle
 bash compile.sh all ON OFF OFF $LIB_DIR
-
-# 4. prepare python third-party lib
+```
+### 4. prepare python third-party lib
+```
 python3.7 -m pip install py3nvml;  # monitor gpu
 python3.7 -m pip install cup;      # monitor cpu
 python3.7 -m pip install pandas;   # process data
 python3.7 -m pip install openpyxl; # process data to excel
+```
 
-
-# 5. start benchmark tests
+### 5. start benchmark tests
+```
 bash bin/run_models_benchmark.sh "static" "cpu"
-
+```
+### 6. Find the performance log
 You can find three models performance in log folder
