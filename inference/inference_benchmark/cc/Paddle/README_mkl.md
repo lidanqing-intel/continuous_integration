@@ -51,6 +51,7 @@ export LIB_DIR=/Paddle/v2.0.1_oneDNN2.2/paddle_inference_install_dir
 ### 2. download test codes
 ```
 git clone https://github.com/PaddlePaddle/continuous_integration.git
+git checkout Issue_oneDNN2.2_drop -b Issue_oneDNN2.2_drop
 ```
 ### 3. compile test codes
 ```
