@@ -63,6 +63,12 @@ if [ "${MODEL_TYPE}" == "static" ]; then
         bash $CASE_ROOT/run_clas_int8_benchmark.sh "${DATA_ROOT}/PaddleClas/infer_static"
         bash $CASE_ROOT/run_det_int8_benchmark.sh "${DATA_ROOT}/PaddleDetection/infer_static"
     elif [ "${device_type}" == "cpu" ]; then 
+        # Bind threads to cores
+        export KMP_AFFINITY=granularity=fine,compact,1,0
+        export KMP_BLOCKTIME=1
+        # no_turbo 1 means turning off turbo, it was set to save power. no_turbo 0 means turning on turbo which will improve some performance
+        # echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
+
         bash $CASE_ROOT/run_clas_mkl_benchmark.sh "${DATA_ROOT}/PaddleClas/infer_static"
         # bash $CASE_ROOT/run_det_mkl_benchmark.sh "${DATA_ROOT}/PaddleDetection/infer_static"  # very slow
     fi
