@@ -69,6 +69,8 @@ if [ "${MODEL_TYPE}" == "static" ]; then
         # no_turbo 1 means turning off turbo, it was set to save power. no_turbo 0 means turning on turbo which will improve some performance
         # echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
 
+#        default_cpu_batch_size=(1 2 4)
+#        cpu_batch_size=${3:-${default_cpu_batch_size[@]}}
         bash $CASE_ROOT/run_clas_mkl_benchmark.sh "${DATA_ROOT}/PaddleClas/infer_static"
         # bash $CASE_ROOT/run_det_mkl_benchmark.sh "${DATA_ROOT}/PaddleDetection/infer_static"  # very slow
     fi

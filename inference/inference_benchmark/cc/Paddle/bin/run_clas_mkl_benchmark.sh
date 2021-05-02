@@ -8,7 +8,11 @@ test_cpu(){
     model_name=$2
     model_path=$3
     params_path=$4
+    default_cpu_batch_size=(1 2 4)
+    cpu_batch_size=${5:-${default_cpu_batch_size[@]}}
 
+    echo "WARNING!!!!"
+    echo ${cpu_batch_size}
     image_shape="3,224,224"
     if [ $# -ge 5 ]; then
         image_shape=$5
@@ -16,7 +20,7 @@ test_cpu(){
     printf "${YELLOW} ${model_name} input image_shape = ${image_shape} ${NC} \n";
     use_gpu=false;
 
-    for batch_size in "1" "2" "4"
+    for batch_size in  ${cpu_batch_size[@]} #"1" "2" "4"
     do
         echo " "
         printf "start ${YELLOW} ${model_name}, use_gpu: ${use_gpu}, batch_size: ${batch_size}${NC}\n"
@@ -43,6 +47,7 @@ test_mkldnn(){
     model_path=$3
     params_path=$4
 
+    cpu_batch_size=${5:-$default_cpu_batch_size}
     image_shape="3,224,224"
     if [ $# -ge 5 ]; then
         image_shape=$5
@@ -51,7 +56,7 @@ test_mkldnn(){
     use_gpu=false;
     use_mkldnn=true;
 
-    for batch_size in "1" "2" "4"
+    for batch_size in ${cpu_batch_size[@]} #"1" "2" "4"
     do
         for cpu_math_library_num_threads in "1" "2" "4"
         do
@@ -79,6 +84,10 @@ test_mkldnn(){
 main(){
     printf "${YELLOW} ==== start benchmark ==== ${NC} \n"
     model_root=$1
+    cpu_batch_size_group=$2
+    
+    echo "WARNING!!!!! cpu_batch_size_group"
+    echo $cpu_batch_size_group
 
     class_model="AlexNet \
                  DarkNet53 \
@@ -107,11 +116,11 @@ main(){
     do
         test_cpu "clas_benchmark" "${tests}" \
                  ${model_root}/${tests}/__model__ \
-                 ${model_root}/${tests}/params
-    
+                 ${model_root}/${tests}/params ${cpu_batch_size_group}
+                 
         test_mkldnn "clas_benchmark" "${tests}" \
                  ${model_root}/${tests}/__model__ \
-                 ${model_root}/${tests}/params
+                 ${model_root}/${tests}/params ${cpu_batch_size_group}
     done
 
     if [ "${MODEL_TYPE}" == "static" ]; then
@@ -120,24 +129,24 @@ main(){
         test_cpu "clas_benchmark" "${model_case}" \
                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__model__" \
                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__params__" \
-                "3,320,320"
+                ${cpu_batch_size_group} "3,320,320"
 
         test_mkldnn "clas_benchmark" "${model_case}" \
                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__model__" \
                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__params__" \
-                "3,320,320"
+                ${cpu_batch_size_group}  "3,320,320"
         
         # ssd_mobilenet_v1_voc
         model_case="ssd_mobilenet_v1_voc"
         test_cpu "clas_benchmark" "${model_case}" \
                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__model__" \
                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__params__" \
-                "3,300,300"
+                ${cpu_batch_size_group} "3,300,300"
 
         test_mkldnn "clas_benchmark" "${model_case}" \
                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__model__" \
                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__params__" \
-                "3,300,300"
+                ${cpu_batch_size_group} "3,300,300"
         
         seg_model="deeplabv3p \
                 fastscnn \
@@ -151,12 +160,12 @@ main(){
             test_cpu "clas_benchmark" "${tests}" \
                     ${DATA_ROOT}/PaddleSeg/infer_static/${tests}/__model__ \
                     ${DATA_ROOT}/PaddleSeg/infer_static/${tests}/__params__ \
-                    "3,512,512"
+                    ${cpu_batch_size_group} "3,512,512"
         
             test_mkldnn "clas_benchmark" "${tests}" \
                     ${DATA_ROOT}/PaddleSeg/infer_static/${tests}/__model__ \
                     ${DATA_ROOT}/PaddleSeg/infer_static/${tests}/__params__ \
-                    "3,512,512"
+                    ${cpu_batch_size_group} "3,512,512"
         done
 
         # ch_ppocr_mobile_v1.1_cls_infer
@@ -164,36 +173,36 @@ main(){
         test_cpu "clas_benchmark" "${model_case}" \
                 "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
                 "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
-                "3,48,192"
+                ${cpu_batch_size_group} "3,48,192"
 
         test_mkldnn "clas_benchmark" "${model_case}" \
                 "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
                 "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
-                "3,48,192"
+                ${cpu_batch_size_group}  "3,48,192"
         
         # ch_ppocr_mobile_v1.1_det_infer
         model_case="ch_ppocr_mobile_v1.1_det_infer"
         test_cpu "clas_benchmark" "${model_case}" \
                 "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
                 "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
-                "3,640,640"
+                ${cpu_batch_size_group} "3,640,640"
 
         test_mkldnn "clas_benchmark" "${model_case}" \
                 "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
                 "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
-                "3,640,640"
+                ${cpu_batch_size_group} "3,640,640"
         
         # ch_ppocr_mobile_v1.1_rec_infer
         model_case="ch_ppocr_mobile_v1.1_rec_infer"
         test_cpu "clas_benchmark" "${model_case}" \
                 "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
                 "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
-                "3,32,320"
+                ${cpu_batch_size_group}  "3,32,320"
 
         test_mkldnn "clas_benchmark" "${model_case}" \
                 "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
                 "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
-                "3,32,320" "10"
+                ${cpu_batch_size_group} "3,32,320" "10"
     fi
 
     printf "${YELLOW} ==== finish benchmark ==== ${NC} \n"
@@ -203,5 +212,12 @@ model_root=${DATA_ROOT}/PaddleClas/infer_static
 if [ $# -ge 1 ]; then
     model_root=$1
 fi
+default_cpu_batch_size=(1 2 4)
 
-main ${model_root}
+cpu_batch_size=${1:-${default_cpu_batch_size[@]}}
+
+# default_cpu_batch_size=(1 2 4)
+# cpu_batch_size=${2:-${default_cpu_batch_size[@]}}
+echo "First WARNING!! "
+echo ${cpu_batch_size[2]}
+main ${model_root} ${cpu_batch_size[2]}
