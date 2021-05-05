@@ -11,7 +11,7 @@ test_cpu(){
     default_cpu_batch_size=(1 2 4)
     cpu_batch_size=${5:-${default_cpu_batch_size[@]}}
 
-    echo "WARNING!!!!"
+    echo "WARNING!!!! passed to run_clas_mkl_benchmark.sh"
     echo ${cpu_batch_size}
     image_shape="3,224,224"
     if [ $# -ge 5 ]; then
@@ -84,10 +84,10 @@ test_mkldnn(){
 main(){
     printf "${YELLOW} ==== start benchmark ==== ${NC} \n"
     model_root=$1
-    cpu_batch_size_group=$2
+    cpu_batch_size_group=$2[@]
     
     echo "WARNING!!!!! cpu_batch_size_group"
-    echo $cpu_batch_size_group
+    echo $cpu_batch_size_group[@]
 
     class_model="AlexNet \
                  DarkNet53 \
@@ -212,12 +212,14 @@ model_root=${DATA_ROOT}/PaddleClas/infer_static
 if [ $# -ge 1 ]; then
     model_root=$1
 fi
-default_cpu_batch_size=(1 2 4)
 
-cpu_batch_size=${1:-${default_cpu_batch_size[@]}}
+#default_cpu_batch_size=(1 2 4)
 
-# default_cpu_batch_size=(1 2 4)
-# cpu_batch_size=${2:-${default_cpu_batch_size[@]}}
+#echo "CLAS ZERO WARNING!! "
+#echo ${cpu_batch_size[@]}
+name=$2[@]
+cpu_batch_size=("${!name}")
+#cpu_batch_size=$2[@]
 echo "First WARNING!! "
-echo ${cpu_batch_size[2]}
-main ${model_root} ${cpu_batch_size[2]}
+echo ${cpu_batch_size[@]}
+main ${model_root} ${cpu_batch_size[@]}
