@@ -90,6 +90,7 @@ void PrepareConfig(paddle_infer::Config *config) {
     config->SetCpuMathLibraryNumThreads(FLAGS_cpu_math_library_num_threads);
     if (FLAGS_use_mkldnn_) {
       config->EnableMKLDNN();
+      config->pass_builder()->AppendPass("interpolate_mkldnn_pass");
       LOG(INFO) << "mkldnn enabled";
     }
   }
