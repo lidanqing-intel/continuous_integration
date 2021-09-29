@@ -14,6 +14,8 @@
 
 #include <map>
 #include <vector>
+#include <bits/stdc++.h>
+#include <unordered_map>
 #include <string>
 #include <chrono>
 #include <iostream>
@@ -22,11 +24,12 @@
 #include <iterator>
 #include <numeric>  // std::iota
 #include <algorithm>  // std::sort
-
+#include <memory> //std::shared_ptr
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 
 #include "paddle/include/paddle_inference_api.h"
+#include "paddle/include/paddle_mkldnn_quantizer_config.h"
 
 DEFINE_string(model_path, "./mobilenetv1/model",
               "Directory of the infer model file.");
@@ -51,7 +54,8 @@ DEFINE_bool(use_mkldnn_, false, "use mkldnn or not, \
             named use_mkldnn_ instead");
 // DECLARE_bool(use_mkldnn);
 DEFINE_bool(use_interpolate_mkldnn_pass, false, "enable interpolate_mkldnn_pass or not");
-
+DEFINE_bool(use_mkldnn_int8, false, "turn on mkldnn int8 benchmark");
+DEFINE_bool(use_mkldnn_bf16, false, "turn on mkldnn bf16 benchmark");
 DEFINE_int32(thread_num, 1, "num of threads");
 DEFINE_int32(batch_size, 1, "batch size");
 DEFINE_int32(warmup_times, 10, "warmup times");
@@ -64,6 +68,37 @@ std::map<std::string, paddle_infer::PrecisionType> trt_precision_map ={
   {"fp16", paddle_infer::PrecisionType::kHalf},
   {"int8", paddle_infer::PrecisionType::kInt8},
 };
+
+
+/*
+  AnalysisConfig cfg;
+  cfg.EnableMkldnnQuantizer();
+  cfg.mkldnn_quantizer_config()->SetWarmupData(warmup_data);
+  cfg.mkldnn_quantizer_config()->SetWarmupBatchSize(warmup_batch_size);
+  cfg.mkldnn_quantizer_config()->SetEnabledOpTypes(enabled_op_types);
+  cfg.mkldnn_quantizer_config()->SetExcludedOpIds(excluded_op_ids);
+  cfg.mkldnn_quantizer_config()->SetDefaultScaleAlgo(default_scale_algo);
+  cfg.mkldnn_quantizer_config()->SetScaleAlgo("conv2d", "Input",
+                                              conv2d_scale_algo);
+*/
+
+
+
+std::shared_ptr<std::vector<paddle::PaddleTensor>> GetMKLDNNDummyWarmupData() {
+  auto warmup_data = std::make_shared<std::vector<paddle::PaddleTensor>>(1);
+  paddle::PaddleTensor images;
+  images.name = "image";
+  images.shape = {2, 3, 224, 224};
+  images.dtype = paddle::PaddleDType::FLOAT32;
+  images.data.Resize(sizeof(float) * 2 * 3 * 224 * 224);
+  std::vector<float> v(2*3*224*224, 1.5f);
+  // std::memset(images.data.data(), -1, sizeof(2 * 3 * 224 * 224));
+  // std::fill_n(images.data.data().begin(), 2 * 3 * 224 * 224, 1);
+  std::copy_n(static_cast<float *>(v.data()), 2 * 3 * 224 * 224, static_cast<float *>(images.data.data()));
+
+  (*warmup_data)[0] = std::move(images);
+  return warmup_data;
+}
 
 void PrepareConfig(paddle_infer::Config *config) {
   // prepare Paddle-Inference Config
@@ -90,12 +125,36 @@ void PrepareConfig(paddle_infer::Config *config) {
     config->DisableGpu();
     config->SetCpuMathLibraryNumThreads(FLAGS_cpu_math_library_num_threads);
     if (FLAGS_use_mkldnn_) {
+      //fp32 necessity
       config->EnableMKLDNN();
       LOG(INFO) << "mkldnn enabled";
       if (FLAGS_use_interpolate_mkldnn_pass){
         config->pass_builder()->AppendPass("interpolate_mkldnn_pass");
         LOG(INFO) << "enable interpolate_mkldnn_pass for seg and ocr model";
       }
+
+      // mkldnn int8 optional
+      if (FLAGS_use_mkldnn_int8){
+        // prepare warmup batch from input data read earlier
+        // warmup batch size can be different than batch size
+        // std::unordered_set<std::string> enabled_op_types({"conv2d", "fc", "reshape2"});
+        // paddle::ScaleAlgo default_scale_algo = paddle::ScaleAlgo::NONE;
+        // paddle::ScaleAlgo conv2d_scale_algo = paddle::ScaleAlgo::MAX;
+        config->EnableMkldnnQuantizer();
+        config->mkldnn_quantizer_config()->SetWarmupBatchSize(2);
+        config->mkldnn_quantizer_config()->SetWarmupData(GetMKLDNNDummyWarmupData());
+        // config->mkldnn_quantizer_config()->SetEnabledOpTypes(enabled_op_types);
+        // // cfg.mkldnn_quantizer_config()->SetExcludedOpIds(excluded_op_ids);
+        // config->mkldnn_quantizer_config()->SetDefaultScaleAlgo(default_scale_algo);
+        // config->mkldnn_quantizer_config()->SetScaleAlgo("conv2d", "Input",
+        //                                       conv2d_scale_algo);
+        LOG(INFO) << "Enable mkldnn int8 calibration benchmark";
+      }
+      else if(FLAGS_use_mkldnn_bf16){
+        config->EnableMkldnnBfloat16();
+        LOG(INFO) << "Enable mkldnn bf16 benchmark";
+      }
+
     }
   }
   config->EnableMemoryOptim();

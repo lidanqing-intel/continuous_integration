@@ -11,6 +11,8 @@ export LOG_ROOT=$ROOT/log
 export gpu_type=`nvidia-smi -q | grep "Product Name" | head -n 1 | awk '{print $NF}'`
 source $ROOT/bin/run_clas_mkl_benchmark.sh
 source $ROOT/bin/run_det_mkl_benchmark.sh
+source $ROOT/bin/run_clas_mkl_int8_benchmark.sh
+
 # test model type
 model_type="static"
 if [ $# -ge 1 ]; then
@@ -72,8 +74,11 @@ if [ "${MODEL_TYPE}" == "static" ]; then
         cpu_batch_size=${3:-${default_cpu_batch_size[@]}}
         default_cpu_num_threads=(1 2 4)
         cpu_num_threads=${4:-${default_cpu_num_threads[@]}}
-        run_clas_mkl_func "${DATA_ROOT}/PaddleClas/infer_static" cpu_batch_size cpu_num_threads
-        run_det_mkl_func "${DATA_ROOT}/PaddleDetection/infer_static" cpu_batch_size cpu_num_threads
+        # run_clas_mkl_func "${DATA_ROOT}/PaddleClas/infer_static" cpu_batch_size cpu_num_threads
+        run_clas_mkl_int8_func "${DATA_ROOT}/PaddleClas/infer_static" cpu_batch_size cpu_num_threads
+        # run_det_mkl_func "${DATA_ROOT}/PaddleDetection/infer_static" cpu_batch_size cpu_num_threads
+        
+        # run_det_mkl_int8_func "${DATA_ROOT}/PaddleDetection/infer_static" cpu_batch_size cpu_num_threads
     fi
 elif [ "${MODEL_TYPE}" == "dy2static" ]; then
     bash $CASE_ROOT/run_clas_gpu_trt_benchmark.sh "${DATA_ROOT}/PaddleClas/infer_dygraph"
