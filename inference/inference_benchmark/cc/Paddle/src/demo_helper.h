@@ -58,6 +58,7 @@ DEFINE_int32(warmup_times, 10, "warmup times");
 DEFINE_int32(repeats, 1000, "repeats times");
 DEFINE_int32(cpu_math_library_num_threads, 1, "cpu_math_library_num_threads");
 DEFINE_int32(trt_min_subgraph_size, 3, "tensorrt min_subgraph_size");
+DEFINE_bool(use_mkldnn_bfloat16, false, "turn on mkldnn bf16 benchmark");
 
 std::map<std::string, paddle_infer::PrecisionType> trt_precision_map ={
   {"fp32", paddle_infer::PrecisionType::kFloat32},
@@ -96,9 +97,13 @@ void PrepareConfig(paddle_infer::Config *config) {
         config->pass_builder()->AppendPass("interpolate_mkldnn_pass");
         LOG(INFO) << "enable interpolate_mkldnn_pass for seg and ocr model";
       }
+      if(FLAGS_use_mkldnn_bfloat16){
+        config->EnableMkldnnBfloat16();
+        LOG(INFO) << "Enable mkldnn bf16 benchmark";
+      }
     }
   }
-  config->EnableMemoryOptim();
+  // config->EnableMemoryOptim();
 }
 
 class Timer {
@@ -151,6 +156,7 @@ void SummaryConfig(paddle_infer::Config *config,
     }else {
       LOG(INFO) << "enable_mkldnn: " << (config->mkldnn_enabled() ? "true" : "false");
       LOG(INFO) << "cpu_math_library_num_threads: " << config->cpu_math_library_num_threads();
+      LOG(INFO) << "enable_mkldnn_bf16: " << config->mkldnn_bfloat16_enabled();
     }
   LOG(INFO) << "----------------------- Perf info -----------------------";
   LOG(INFO) << "Average latency(ms): " << infer_time / FLAGS_repeats << ", " \

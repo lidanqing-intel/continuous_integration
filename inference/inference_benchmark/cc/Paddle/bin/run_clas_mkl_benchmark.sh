@@ -30,7 +30,7 @@ function test_cpu(){
             --batch_size=${batch_size} \
             --model_type=${MODEL_TYPE} \
             --repeats=500 \
-            --use_gpu=${use_gpu} >> ${log_file} 2>&1 | python3.7 ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
+            --use_gpu=${use_gpu} >> ${log_file} 2>&1 | python ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
         printf "finish ${RED} ${model_name}, use_gpu: ${use_gpu}, batch_size: ${batch_size}${NC}\n"
         echo " "
     done                               
@@ -58,6 +58,7 @@ function test_mkldnn(){
     printf "${YELLOW} ${model_name} input image_shape = ${image_shape} ${NC} \n";
     use_gpu=false;
     use_mkldnn=true;
+    use_mkldnn_bfloat16=true;
 
     for batch_size in ${cpu_batch_size[@]}
     do
@@ -77,9 +78,58 @@ function test_mkldnn(){
                 --model_type=${MODEL_TYPE} \
                 --use_interpolate_mkldnn_pass=${use_interpolate_mkldnn_pass} \
                 --cpu_math_library_num_threads=${cpu_math_library_num_threads} \
-                --use_mkldnn_=${use_mkldnn} >> ${log_file} 2>&1 | python3.7 ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
+                --use_mkldnn_=${use_mkldnn} >> ${log_file} 2>&1 | python ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
 
             printf "finish ${RED} ${model_name}, use_mkldnn: ${use_mkldnn}, cpu_math_library_num_threads: ${cpu_math_library_num_threads}, batch_size: ${batch_size}${NC}\n"
+            echo " "
+        done
+    done                               
+}
+
+function test_mkldnn_bfloat16(){
+    exe_bin=$1 # ./build/clas_benchmark
+    model_name=$2
+    model_path=$3
+    params_path=$4
+    declare -a name_batch_size=$5[@]
+    cpu_batch_size=(${!name_batch_size})
+    declare -a name_threads=$6[@]
+    cpu_num_threads=(${!name_threads})
+    image_shape="3,224,224"
+    if [ $# -ge 7 ]; then
+        image_shape=$7
+    fi
+    use_interpolate_mkldnn_pass=false;
+    if [ $# -ge 8 ]; then
+        use_interpolate_mkldnn_pass=$8
+    fi
+
+    printf "${YELLOW} ${model_name} input image_shape = ${image_shape} ${NC} \n";
+    use_gpu=false;
+    use_mkldnn=true;
+
+    for batch_size in ${cpu_batch_size[@]}
+    do
+        for cpu_math_library_num_threads in ${cpu_num_threads[@]}
+        do
+            echo " "
+            printf "start ${YELLOW} ${model_name}, use_mkldnn: ${use_mkldnn}, use_mkldnn_bfloat16: ${use_mkldnn_bfloat16}, cpu_math_library_num_threads: ${cpu_math_library_num_threads}, batch_size: ${batch_size}${NC}\n"
+
+            log_file="${LOG_ROOT}/${model_name}_mkldnn_bfloat16_${cpu_math_library_num_threads}_bz${batch_size}_infer.log"
+            $OUTPUT_BIN/${exe_bin} --model_name=${model_name} \
+                --model_path=${model_path} \
+                --params_path=${params_path} \
+                --image_shape=${image_shape} \
+                --batch_size=${batch_size} \
+                --use_gpu=${use_gpu} \
+                --repeats=500 \
+                --model_type=${MODEL_TYPE} \
+                --use_interpolate_mkldnn_pass=${use_interpolate_mkldnn_pass} \
+                --cpu_math_library_num_threads=${cpu_math_library_num_threads} \
+                --use_mkldnn_=${use_mkldnn} \
+                --use_mkldnn_bfloat16=${use_mkldnn_bfloat16} >> ${log_file} 2>&1 | python ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
+
+            printf "finish ${RED} ${model_name}, use_mkldnn: ${use_mkldnn}, use_mkldnn_bfloat16: ${use_mkldnn_bfloat16}, cpu_math_library_num_threads: ${cpu_math_library_num_threads}, batch_size: ${batch_size}${NC}\n"
             echo " "
         done
     done                               
@@ -127,89 +177,93 @@ function run_clas_mkl_func(){
         test_mkldnn "clas_benchmark" "${tests}" \
                  ${model_root}/${tests}/__model__ \
                  ${model_root}/${tests}/params cpu_batch_size cpu_num_threads
+        
+        test_mkldnn_bfloat16 "clas_benchmark" "${tests}" \
+                 ${model_root}/${tests}/__model__ \
+                 ${model_root}/${tests}/params cpu_batch_size cpu_num_threads
     done
 
-    if [ "${MODEL_TYPE}" == "static" ]; then
-        # ssdlite_mobilenet_v3_large
-        model_case="ssdlite_mobilenet_v3_large"
-        test_cpu "clas_benchmark" "${model_case}" \
-                "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__model__" \
-                "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__params__" \
-                cpu_batch_size "3,320,320"
+     if [ "${MODEL_TYPE}" == "static" ]; then
+         # ssdlite_mobilenet_v3_large
+         model_case="ssdlite_mobilenet_v3_large"
+         test_cpu "clas_benchmark" "${model_case}" \
+                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__model__" \
+                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__params__" \
+                 cpu_batch_size "3,320,320"
 
-        test_mkldnn "clas_benchmark" "${model_case}" \
-                "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__model__" \
-                "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__params__" \
-                cpu_batch_size cpu_num_threads "3,320,320"
-        
-        # ssd_mobilenet_v1_voc
-        model_case="ssd_mobilenet_v1_voc"
-        test_cpu "clas_benchmark" "${model_case}" \
-                "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__model__" \
-                "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__params__" \
-                cpu_batch_size "3,300,300"
+         test_mkldnn "clas_benchmark" "${model_case}" \
+                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__model__" \
+                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__params__" \
+                 cpu_batch_size cpu_num_threads "3,320,320"
+       
+         # ssd_mobilenet_v1_voc
+         model_case="ssd_mobilenet_v1_voc"
+         test_cpu "clas_benchmark" "${model_case}" \
+                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__model__" \
+                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__params__" \
+                 cpu_batch_size "3,300,300"
 
-        test_mkldnn "clas_benchmark" "${model_case}" \
-                "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__model__" \
-                "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__params__" \
-                cpu_batch_size cpu_num_threads "3,300,300"
-        
-        seg_model="deeplabv3p \
-                fastscnn \
-                hrnet \
-                icnet \
-                pspnet \
-                unet"
+         test_mkldnn "clas_benchmark" "${model_case}" \
+                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__model__" \
+                 "${DATA_ROOT}/PaddleDetection/infer_static/${model_case}/__params__" \
+                 cpu_batch_size cpu_num_threads "3,300,300"
+       
+         seg_model="deeplabv3p \
+                 fastscnn \
+                 hrnet \
+                 icnet \
+                 pspnet \
+                 unet"
 
-        for tests in ${seg_model}
-        do
-            test_cpu "clas_benchmark" "${tests}" \
-                    ${DATA_ROOT}/PaddleSeg/infer_static/${tests}/__model__ \
-                    ${DATA_ROOT}/PaddleSeg/infer_static/${tests}/__params__ \
-                    cpu_batch_size "3,512,512"
-        
-            test_mkldnn "clas_benchmark" "${tests}" \
-                    ${DATA_ROOT}/PaddleSeg/infer_static/${tests}/__model__ \
-                    ${DATA_ROOT}/PaddleSeg/infer_static/${tests}/__params__ \
-                    cpu_batch_size cpu_num_threads "3,512,512" "true"
-        done
+         for tests in ${seg_model}
+         do
+             test_cpu "clas_benchmark" "${tests}" \
+                     ${DATA_ROOT}/PaddleSeg/infer_static/${tests}/__model__ \
+                     ${DATA_ROOT}/PaddleSeg/infer_static/${tests}/__params__ \
+                     cpu_batch_size "3,512,512"
+       
+             test_mkldnn "clas_benchmark" "${tests}" \
+                     ${DATA_ROOT}/PaddleSeg/infer_static/${tests}/__model__ \
+                     ${DATA_ROOT}/PaddleSeg/infer_static/${tests}/__params__ \
+                     cpu_batch_size cpu_num_threads "3,512,512" "true"
+         done
 
-        # ch_ppocr_mobile_v1.1_cls_infer
-        model_case="ch_ppocr_mobile_v1.1_cls_infer"
-        test_cpu "clas_benchmark" "${model_case}" \
-                "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
-                "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
-                cpu_batch_size "3,48,192"
+         # ch_ppocr_mobile_v1.1_cls_infer
+         model_case="ch_ppocr_mobile_v1.1_cls_infer"
+         test_cpu "clas_benchmark" "${model_case}" \
+                 "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
+                 "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
+                 cpu_batch_size "3,48,192"
 
-        test_mkldnn "clas_benchmark" "${model_case}" \
-                "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
-                "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
-                cpu_batch_size cpu_num_threads "3,48,192"
-        
-        # ch_ppocr_mobile_v1.1_det_infer
-        model_case="ch_ppocr_mobile_v1.1_det_infer"
-        test_cpu "clas_benchmark" "${model_case}" \
-                "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
-                "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
-                cpu_batch_size "3,640,640"
+         test_mkldnn "clas_benchmark" "${model_case}" \
+                 "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
+                 "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
+                 cpu_batch_size cpu_num_threads "3,48,192"
+       
+         # ch_ppocr_mobile_v1.1_det_infer
+         model_case="ch_ppocr_mobile_v1.1_det_infer"
+         test_cpu "clas_benchmark" "${model_case}" \
+                 "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
+                 "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
+                 cpu_batch_size "3,640,640"
 
-        test_mkldnn "clas_benchmark" "${model_case}" \
-                "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
-                "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
-                cpu_batch_size cpu_num_threads "3,640,640" "true"
-        
-        # # ch_ppocr_mobile_v1.1_rec_infer
-        # model_case="ch_ppocr_mobile_v1.1_rec_infer"
-        # test_cpu "clas_benchmark" "${model_case}" \
-        #         "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
-        #         "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
-        #         cpu_batch_size "3,32,320"
+         test_mkldnn "clas_benchmark" "${model_case}" \
+                 "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
+                 "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
+                 cpu_batch_size cpu_num_threads "3,640,640" "true"
+       
+         # ch_ppocr_mobile_v1.1_rec_infer
+         model_case="ch_ppocr_mobile_v1.1_rec_infer"
+         test_cpu "clas_benchmark" "${model_case}" \
+                 "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
+                 "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
+                 cpu_batch_size "3,32,320"
 
-        # test_mkldnn "clas_benchmark" "${model_case}" \
-        #         "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
-        #         "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
-        #         cpu_batch_size cpu_num_threads "3,32,320" "10"
-    fi
+         test_mkldnn "clas_benchmark" "${model_case}" \
+                 "${DATA_ROOT}/PaddleOCR/${model_case}/model" \
+                 "${DATA_ROOT}/PaddleOCR/${model_case}/params" \
+                 cpu_batch_size cpu_num_threads "3,32,320" "true"
+     fi
 
     printf "${YELLOW} ==== finish benchmark ==== ${NC} \n"
 }
