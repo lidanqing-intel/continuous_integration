@@ -38,7 +38,8 @@ function test_cpu(){
             --batch_size=${batch_size} \
             --model_type=${MODEL_TYPE} \
             --repeats=500 \
-            --use_gpu=${use_gpu} >> ${log_file} 2>&1 | python3.7 ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
+            --use_gpu=${use_gpu} | python3.7 ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}"
+            #--use_gpu=${use_gpu} >> ${log_file} 2>&1 | python3.7 ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
         printf "finish ${RED} ${model_name}, use_gpu: ${use_gpu}, batch_size: ${batch_size}${NC}\n"
         echo " "
     done                               
@@ -93,7 +94,8 @@ function test_mkldnn(){
                 --model_type=${MODEL_TYPE} \
                 --use_interpolate_mkldnn_pass=${use_interpolate_mkldnn_pass} \
                 --cpu_math_library_num_threads=${cpu_math_library_num_threads} \
-                --use_mkldnn_=${use_mkldnn} >> ${log_file} 2>&1 | python3.7 ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
+                --use_mkldnn_=${use_mkldnn} | python3.7 ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" 
+                #--use_mkldnn_=${use_mkldnn} >> ${log_file} 2>&1 | python3.7 ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
 
             printf "finish ${RED} ${model_name}, use_mkldnn: ${use_mkldnn}, cpu_math_library_num_threads: ${cpu_math_library_num_threads}, batch_size: ${batch_size}${NC}\n"
             echo " "
