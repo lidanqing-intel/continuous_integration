@@ -25,7 +25,7 @@ function test_cpu(){
         log_file="${LOG_ROOT}/${model_name}_cpu_bz${batch_size}_infer.log"
         if [ "${MODEL_TYPE}" == "static_prune_op" ]; then
             echo "========================== start prune model op attribute +++++++++++++++++++++++++++"
-            python3.7 ${UTILS_ROOT}/model_clip.py --model_file="${model_path}" \
+            python ${UTILS_ROOT}/model_clip.py --model_file="${model_path}" \
                                                   --params_file="${params_path}" \
                                                   --output_model_path="${DATA_ROOT}/prune_model/${model_name}/inference"
             model_path="${DATA_ROOT}/prune_model/${model_name}/inference.pdmodel"
@@ -38,7 +38,7 @@ function test_cpu(){
             --batch_size=${batch_size} \
             --model_type=${MODEL_TYPE} \
             --repeats=500 \
-            --use_gpu=${use_gpu} >> ${log_file} 2>&1 | python3.7 ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
+            --use_gpu=${use_gpu} >> ${log_file} 2>&1 | python ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
         printf "finish ${RED} ${model_name}, use_gpu: ${use_gpu}, batch_size: ${batch_size}${NC}\n"
         echo " "
     done                               
@@ -77,7 +77,7 @@ function test_mkldnn(){
             log_file="${LOG_ROOT}/${model_name}_mkldnn_${cpu_math_library_num_threads}_bz${batch_size}_infer.log"
             if [ "${MODEL_TYPE}" == "static_prune_op" ]; then
                 echo "========================== start prune model op attribute +++++++++++++++++++++++++++"
-                python3.7 ${UTILS_ROOT}/model_clip.py --model_file="${model_path}" \
+                python ${UTILS_ROOT}/model_clip.py --model_file="${model_path}" \
                                                       --params_file="${params_path}" \
                                                       --output_model_path="${DATA_ROOT}/prune_model/${model_name}/inference"
                 model_path="${DATA_ROOT}/prune_model/${model_name}/inference.pdmodel"
@@ -93,9 +93,59 @@ function test_mkldnn(){
                 --model_type=${MODEL_TYPE} \
                 --use_interpolate_mkldnn_pass=${use_interpolate_mkldnn_pass} \
                 --cpu_math_library_num_threads=${cpu_math_library_num_threads} \
-                --use_mkldnn_=${use_mkldnn} >> ${log_file} 2>&1 | python3.7 ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
+                --use_mkldnn_=${use_mkldnn} >> ${log_file} 2>&1 | python ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
 
             printf "finish ${RED} ${model_name}, use_mkldnn: ${use_mkldnn}, cpu_math_library_num_threads: ${cpu_math_library_num_threads}, batch_size: ${batch_size}${NC}\n"
+            echo " "
+        done
+    done                               
+}
+
+function test_mkldnn_bfloat16(){
+    exe_bin=$1 # ./build/clas_benchmark
+    model_name=$2
+    model_path=$3
+    params_path=$4
+    declare -a name_batch_size=$5[@]
+    cpu_batch_size=(${!name_batch_size})
+    declare -a name_threads=$6[@]
+    cpu_num_threads=(${!name_threads})
+    image_shape="3,224,224"
+    if [ $# -ge 7 ]; then
+        image_shape=$7
+    fi
+    use_interpolate_mkldnn_pass=false;
+    if [ $# -ge 8 ]; then
+        use_interpolate_mkldnn_pass=$8
+    fi
+
+    printf "${YELLOW} ${model_name} input image_shape = ${image_shape} ${NC} \n";
+    use_gpu=false;
+    use_mkldnn=true;
+    use_mkldnn_bfloat16=true;
+
+    for batch_size in ${cpu_batch_size[@]}
+    do
+        for cpu_math_library_num_threads in ${cpu_num_threads[@]}
+        do
+            echo " "
+            printf "start ${YELLOW} ${model_name}, use_mkldnn: ${use_mkldnn}, use_mkldnn_bfloat16: ${use_mkldnn_bfloat16}, cpu_math_library_num_threads: ${cpu_math_library_num_threads}, batch_size: ${batch_size}${NC}\n"
+
+            log_file="${LOG_ROOT}/${model_name}_mkldnn_bfloat16_${cpu_math_library_num_threads}_bz${batch_size}_infer.log"
+            DNNL_MAX_CPU_ISA=AVX512_CORE_AMX $OUTPUT_BIN/${exe_bin} --model_name=${model_name} \
+                --model_path=${model_path} \
+                --params_path=${params_path} \
+                --image_shape=${image_shape} \
+                --batch_size=${batch_size} \
+                --use_gpu=${use_gpu} \
+                --repeats=500 \
+                --model_type=${MODEL_TYPE} \
+                --use_interpolate_mkldnn_pass=${use_interpolate_mkldnn_pass} \
+                --cpu_math_library_num_threads=${cpu_math_library_num_threads} \
+                --use_mkldnn_=${use_mkldnn} \
+                --use_mkldnn_bfloat16=${use_mkldnn_bfloat16} >> ${log_file} 2>&1 | python ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
+
+            printf "finish ${RED} ${model_name}, use_mkldnn: ${use_mkldnn}, use_mkldnn_bfloat16: ${use_mkldnn_bfloat16}, cpu_math_library_num_threads: ${cpu_math_library_num_threads}, batch_size: ${batch_size}${NC}\n"
             echo " "
         done
     done                               
@@ -114,7 +164,6 @@ function run_clas_mkl_func(){
     class_model="AlexNet \
                  DarkNet53 \
                  DenseNet121 \
-                 DPN68 \
                  EfficientNetB0 \
                  GhostNet_x1_3 \
                  GoogLeNet \
@@ -141,6 +190,10 @@ function run_clas_mkl_func(){
                  ${model_root}/${tests}/params cpu_batch_size \
         
         test_mkldnn "clas_benchmark" "${tests}" \
+                 ${model_root}/${tests}/__model__ \
+                 ${model_root}/${tests}/params cpu_batch_size cpu_num_threads
+        
+        test_mkldnn_bfloat16 "clas_benchmark" "${tests}" \
                  ${model_root}/${tests}/__model__ \
                  ${model_root}/${tests}/params cpu_batch_size cpu_num_threads
     done
@@ -171,11 +224,12 @@ function run_clas_mkl_func(){
                 cpu_batch_size cpu_num_threads "3,300,300"
         
         seg_model="deeplabv3p \
-                fastscnn \
-                hrnet \
-                icnet \
-                pspnet \
-                unet"
+                # fastscnn \
+                # hrnet \
+                # icnet \
+                # pspnet \
+                # unet"
+
 
         for tests in ${seg_model}
         do

@@ -57,6 +57,8 @@ def process_log(file_name : str) -> dict:
                 output_dict["QPS"] = line_lists[-1].strip()
             if "enable_mkldnn:" in line_lists:
                 output_dict["enable_mkldnn"] = line_lists[-1].strip()
+            if "enable_mkldnn_bfloat16:" in line_lists:
+                output_dict["enable_mkldnn_bfloat16"] = line_lists[-1].strip()
             if "cpu_math_library_num_threads:" in line_lists:
                 output_dict["cpu_math_library_num_threads"] = line_lists[-1].strip()
             if "trt_precision:" in line_lists:

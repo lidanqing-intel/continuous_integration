@@ -25,33 +25,34 @@ if [ $# -ge 2 ]; then
     device_type=$2
 fi
 
-mkdir -p $DATA_ROOT
-cd $DATA_ROOT
-if [ ! -f PaddleClas/infer_static/AlexNet/__model__ ]; then
-    echo "==== Download PaddleClas data and models ===="
-    wget --no-proxy -q https://sys-p0.bj.bcebos.com/Paddle-UnitTest-Model/PaddleClas.tgz --no-check-certificate
-    tar -zxf PaddleClas.tgz
-fi
+export DATA_ROOT="/data/Baidu_CI_models/Data"
+# mkdir -p $DATA_ROOT
+# cd $DATA_ROOT
+# if [ ! -f PaddleClas/infer_static/AlexNet/__model__ ]; then
+#     echo "==== Download PaddleClas data and models ===="
+#     wget --no-proxy -q https://sys-p0.bj.bcebos.com/Paddle-UnitTest-Model/PaddleClas.tgz --no-check-certificate
+#     tar -zxf PaddleClas.tgz
+# fi
 
-if [ ! -f PaddleDetection/infer_static/yolov3_darknet/__model__ ]; then
-    echo "==== Download PaddleDetection data and models ===="
-    wget --no-proxy -q https://sys-p0.bj.bcebos.com/Paddle-UnitTest-Model/PaddleDetection.tgz --no-check-certificate
-    tar -zxf PaddleDetection.tgz
-fi
+# if [ ! -f PaddleDetection/infer_static/yolov3_darknet/__model__ ]; then
+#     echo "==== Download PaddleDetection data and models ===="
+#     wget --no-proxy -q https://sys-p0.bj.bcebos.com/Paddle-UnitTest-Model/PaddleDetection.tgz --no-check-certificate
+#     tar -zxf PaddleDetection.tgz
+# fi
 
-if [ ! -f PaddleOCR/ch_ppocr_mobile_v1.1_cls_infer/model ]; then
-    echo "==== Download PaddleOCR data and models ===="
-    wget --no-proxy -q https://sys-p0.bj.bcebos.com/Paddle-UnitTest-Model/PaddleOCR.tgz --no-check-certificate
-    tar -zxf PaddleOCR.tgz
-fi
+# if [ ! -f PaddleOCR/ch_ppocr_mobile_v1.1_cls_infer/model ]; then
+#     echo "==== Download PaddleOCR data and models ===="
+#     wget --no-proxy -q https://sys-p0.bj.bcebos.com/Paddle-UnitTest-Model/PaddleOCR.tgz --no-check-certificate
+#     tar -zxf PaddleOCR.tgz
+# fi
 
-if [ ! -f PaddleSeg/infer_static/deeplabv3p/__model__ ]; then
-    echo "==== Download PaddleSeg data and models ===="
-    wget --no-proxy -q https://sys-p0.bj.bcebos.com/Paddle-UnitTest-Model/PaddleSeg.tgz --no-check-certificate
-    tar -zxf PaddleSeg.tgz
-fi
+# if [ ! -f PaddleSeg/infer_static/deeplabv3p/__model__ ]; then
+#     echo "==== Download PaddleSeg data and models ===="
+#     wget --no-proxy -q https://sys-p0.bj.bcebos.com/Paddle-UnitTest-Model/PaddleSeg.tgz --no-check-certificate
+#     tar -zxf PaddleSeg.tgz
+# fi
 
-cd -
+# cd -
 
 mkdir -p $LOG_ROOT
 
@@ -62,7 +63,7 @@ if [ "${MODEL_TYPE}" == "static" ]; then
         bash $CASE_ROOT/run_clas_gpu_trt_benchmark.sh "${DATA_ROOT}/PaddleClas/infer_static"
         bash $CASE_ROOT/run_det_gpu_trt_benchmark.sh "${DATA_ROOT}/PaddleDetection/infer_static"
         bash $CASE_ROOT/run_clas_int8_benchmark.sh "${DATA_ROOT}/PaddleClas/infer_static"
-        bash $CASE_ROOT/run_det_int8_benchmark.sh "${DATA_ROOT}/PaddleDetection/infer_static"
+        # bash $CASE_ROOT/run_det_int8_benchmark.sh "${DATA_ROOT}/PaddleDetection/infer_static"
     elif [ "${device_type}" == "cpu" ]; then 
         export KMP_AFFINITY=granularity=fine,compact,1,0
         export KMP_BLOCKTIME=1
@@ -74,7 +75,7 @@ if [ "${MODEL_TYPE}" == "static" ]; then
         default_cpu_num_threads=(1 2 4)
         cpu_num_threads=${4:-${default_cpu_num_threads[@]}}
         run_clas_mkl_func "${DATA_ROOT}/PaddleClas/infer_static" cpu_batch_size cpu_num_threads
-        run_det_mkl_func "${DATA_ROOT}/PaddleDetection/infer_static" cpu_batch_size cpu_num_threads
+        # run_det_mkl_func "${DATA_ROOT}/PaddleDetection/infer_static" cpu_batch_size cpu_num_threads
     fi
 elif [ "${MODEL_TYPE}" == "dy2static" ]; then
     bash $CASE_ROOT/run_clas_gpu_trt_benchmark.sh "${DATA_ROOT}/PaddleClas/infer_dygraph"
@@ -96,6 +97,6 @@ elif [ "${MODEL_TYPE}" == "static_prune_op" ]; then
         default_cpu_num_threads=(1 2 4)
         cpu_num_threads=${4:-${default_cpu_num_threads[@]}}
         run_clas_mkl_func "${DATA_ROOT}/PaddleClas/infer_static" cpu_batch_size cpu_num_threads
-        run_det_mkl_func "${DATA_ROOT}/PaddleDetection/infer_static" cpu_batch_size cpu_num_threads
+        # run_det_mkl_func "${DATA_ROOT}/PaddleDetection/infer_static" cpu_batch_size cpu_num_threads
     fi
 fi

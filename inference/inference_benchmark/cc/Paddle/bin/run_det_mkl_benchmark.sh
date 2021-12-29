@@ -25,7 +25,7 @@ function test_det_cpu(){
         log_file="${LOG_ROOT}/${model_name}_cpu_bz${batch_size}_infer.log"
         if [ "${MODEL_TYPE}" == "static_prune_op" ]; then
             echo "========================== start prune model op attribute +++++++++++++++++++++++++++"
-            python3.7 ${UTILS_ROOT}/model_clip.py --model_file="${model_path}" \
+            python ${UTILS_ROOT}/model_clip.py --model_file="${model_path}" \
                                                   --params_file="${params_path}" \
                                                   --output_model_path="${DATA_ROOT}/prune_model/${model_name}/inference"
             model_path="${DATA_ROOT}/prune_model/${model_name}/inference.pdmodel"
@@ -38,7 +38,7 @@ function test_det_cpu(){
             --batch_size=${batch_size} \
             --model_type=${MODEL_TYPE} \
             --repeats=10 \
-            --use_gpu=${use_gpu} >> ${log_file} 2>&1 | python3.7 ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
+            --use_gpu=${use_gpu} >> ${log_file} 2>&1 | python ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
 
         printf "finish ${RED} ${model_name}, use_gpu: ${use_gpu}, batch_size: ${batch_size}${NC}\n"
         echo " "
@@ -73,7 +73,7 @@ function test_det_mkldnn(){
             log_file="${LOG_ROOT}/${model_name}_mkldnn_${cpu_math_library_num_threads}_bz${batch_size}_infer.log"
             if [ "${MODEL_TYPE}" == "static_prune_op" ]; then
                 echo "========================== start prune model op attribute +++++++++++++++++++++++++++"
-                python3.7 ${UTILS_ROOT}/model_clip.py --model_file="${model_path}" \
+                python ${UTILS_ROOT}/model_clip.py --model_file="${model_path}" \
                                                       --params_file="${params_path}" \
                                                       --output_model_path="${DATA_ROOT}/prune_model/${model_name}/inference"
                 model_path="${DATA_ROOT}/prune_model/${model_name}/inference.pdmodel"
@@ -88,7 +88,7 @@ function test_det_mkldnn(){
                 --repeats=10 \
                 --model_type=${MODEL_TYPE} \
                 --cpu_math_library_num_threads=${cpu_math_library_num_threads} \
-                --use_mkldnn_=${use_mkldnn} >> ${log_file} 2>&1 | python3.7 ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
+                --use_mkldnn_=${use_mkldnn} >> ${log_file} 2>&1 | python ${CASE_ROOT}/py_mem.py "$OUTPUT_BIN/${exe_bin}" >> ${log_file} 2>&1
 
             printf "finish ${RED} ${model_name}, use_mkldnn: ${use_mkldnn}, cpu_math_library_num_threads: ${cpu_math_library_num_threads}, batch_size: ${batch_size}${NC}\n"
             echo " "
@@ -129,7 +129,7 @@ function run_det_mkl_func(){
                 yolov3_mobilenet_v3 \
                 yolov3_r50vd_dcn \
                 yolov4_cspdarknet"
-                
+              
     for tests in ${yolo_model}
     do
         test_det_cpu "yolo_benchmark" "${tests}" \
