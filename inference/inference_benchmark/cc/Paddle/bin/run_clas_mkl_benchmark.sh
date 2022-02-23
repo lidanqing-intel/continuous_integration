@@ -224,11 +224,11 @@ function run_clas_mkl_func(){
                 cpu_batch_size cpu_num_threads "3,300,300"
         
         seg_model="deeplabv3p \
-                # fastscnn \
-                # hrnet \
-                # icnet \
-                # pspnet \
-                # unet"
+                 fastscnn \
+                 hrnet \
+                 icnet \
+                 pspnet \
+                 unet"
 
 
         for tests in ${seg_model}

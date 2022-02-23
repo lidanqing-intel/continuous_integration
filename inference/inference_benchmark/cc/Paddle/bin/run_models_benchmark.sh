@@ -25,7 +25,8 @@ if [ $# -ge 2 ]; then
     device_type=$2
 fi
 
-export DATA_ROOT="/data/Baidu_CI_models/Data"
+# export DATA_ROOT="/data/Baidu_CI_models/Data"
+export DATA_ROOT=$DATA_ROOT
 # mkdir -p $DATA_ROOT
 # cd $DATA_ROOT
 # if [ ! -f PaddleClas/infer_static/AlexNet/__model__ ]; then
@@ -74,8 +75,8 @@ if [ "${MODEL_TYPE}" == "static" ]; then
         cpu_batch_size=${3:-${default_cpu_batch_size[@]}}
         default_cpu_num_threads=(1 2 4)
         cpu_num_threads=${4:-${default_cpu_num_threads[@]}}
-        run_clas_mkl_func "${DATA_ROOT}/PaddleClas/infer_static" cpu_batch_size cpu_num_threads
-        # run_det_mkl_func "${DATA_ROOT}/PaddleDetection/infer_static" cpu_batch_size cpu_num_threads
+        # run_clas_mkl_func "${DATA_ROOT}/PaddleClas/infer_static" cpu_batch_size cpu_num_threads
+        run_det_mkl_func "${DATA_ROOT}/PaddleDetection/infer_static" cpu_batch_size cpu_num_threads
     fi
 elif [ "${MODEL_TYPE}" == "dy2static" ]; then
     bash $CASE_ROOT/run_clas_gpu_trt_benchmark.sh "${DATA_ROOT}/PaddleClas/infer_dygraph"
@@ -96,7 +97,7 @@ elif [ "${MODEL_TYPE}" == "static_prune_op" ]; then
         cpu_batch_size=${3:-${default_cpu_batch_size[@]}}
         default_cpu_num_threads=(1 2 4)
         cpu_num_threads=${4:-${default_cpu_num_threads[@]}}
-        run_clas_mkl_func "${DATA_ROOT}/PaddleClas/infer_static" cpu_batch_size cpu_num_threads
-        # run_det_mkl_func "${DATA_ROOT}/PaddleDetection/infer_static" cpu_batch_size cpu_num_threads
+        # run_clas_mkl_func "${DATA_ROOT}/PaddleClas/infer_static" cpu_batch_size cpu_num_threads
+        run_det_mkl_func "${DATA_ROOT}/PaddleDetection/infer_static" cpu_batch_size cpu_num_threads
     fi
 fi

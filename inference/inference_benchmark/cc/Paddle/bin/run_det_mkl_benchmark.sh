@@ -110,7 +110,7 @@ function run_det_mkl_func(){
     rcnn_model="mask_rcnn_r50_1x \
                 faster_rcnn_r50_1x \
                 faster_rcnn_dcn_r50_vd_fpn_3x_server_side"
-                
+              
     for tests in ${rcnn_model}
     do
         test_det_cpu "rcnn_benchmark" "${tests}" \
@@ -124,22 +124,13 @@ function run_det_mkl_func(){
                  cpu_batch_size cpu_num_threads "3,640,640" "40"
     done
 
-    yolo_model="ppyolo_mobilenet_v3_large \
-                yolov3_darknet \
-                yolov3_mobilenet_v3 \
-                yolov3_r50vd_dcn \
-                yolov4_cspdarknet"
+    yolo_model="yolov3_mobile"
               
     for tests in ${yolo_model}
     do
-        test_det_cpu "yolo_benchmark" "${tests}" \
-                 ${model_root}/${tests}/__model__ \
-                 ${model_root}/${tests}/__params__ \
-                 cpu_batch_size "3,608,608"
-    
         test_det_mkldnn "yolo_benchmark" "${tests}" \
-                 ${model_root}/${tests}/__model__ \
-                 ${model_root}/${tests}/__params__ \
+                 ${model_root}/${tests}/int8_v2.2.2/__model__ \
+                 ${model_root}/${tests}/int8_v2.2.2/__params__ \
                  cpu_batch_size cpu_num_threads "3,608,608"
     done
 
