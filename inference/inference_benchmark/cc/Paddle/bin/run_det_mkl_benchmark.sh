@@ -107,22 +107,22 @@ function run_det_mkl_func(){
     declare name_threads=$3[@]
     cpu_num_threads=(${!name_threads})
 
-    rcnn_model="mask_rcnn_r50_1x \
-                faster_rcnn_r50_1x \
-                faster_rcnn_dcn_r50_vd_fpn_3x_server_side"
-              
-    for tests in ${rcnn_model}
-    do
-        test_det_cpu "rcnn_benchmark" "${tests}" \
-                ${model_root}/${tests}/__model__ \
-                ${model_root}/${tests}/__params__ \
-                cpu_batch_size "3,640,640"
+  #  rcnn_model="mask_rcnn_r50_1x \
+  #              faster_rcnn_r50_1x \
+  #              faster_rcnn_dcn_r50_vd_fpn_3x_server_side"
+  #            
+  #  for tests in ${rcnn_model}
+  #  do
+  #      test_det_cpu "rcnn_benchmark" "${tests}" \
+  #              ${model_root}/${tests}/__model__ \
+  #              ${model_root}/${tests}/__params__ \
+  #              cpu_batch_size "3,640,640"
 
-        test_det_mkldnn "rcnn_benchmark" "${tests}" \
-                 ${model_root}/${tests}/__model__ \
-                 ${model_root}/${tests}/__params__ \
-                 cpu_batch_size cpu_num_threads "3,640,640" "40"
-    done
+  #      test_det_mkldnn "rcnn_benchmark" "${tests}" \
+  #               ${model_root}/${tests}/__model__ \
+  #               ${model_root}/${tests}/__params__ \
+  #               cpu_batch_size cpu_num_threads "3,640,640" "40"
+  #  done
 
     yolo_model="yolov3_mobile"
               
